@@ -1,0 +1,11 @@
+# Never commit secrets or local settings
+*.local
+.env
+secrets/
+sa_password
+
+# Editor and OS clutter
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

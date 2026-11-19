@@ -1,0 +1,56 @@
+# Azure SQL Database container lab.
+#
+# Start it with scripts/Start-AzureSqlDbLab.ps1 (Windows and WSL) or
+# scripts/start-lab.sh (Linux and macOS).  Both scripts write the sa password
+# to a short-lived file on tmpfs and pass that file's path in
+# AZSQLDB_SECRET_FILE, so the password never appears on a command line, in
+# this file, or in the container's configuration (docker inspect).
+#
+# Every setting below can be overridden with an environment variable of the
+# same name.  None of them is a secret.
+
+name: ${AZSQLDB_PROJECT:-azsqldb-lab}
+
+services:
+  sqldb:
+    image: ${AZSQLDB_IMAGE:-mcr.microsoft.com/mssql/azure-sql-db-server:latest}
+    container_name: ${AZSQLDB_CONTAINER:-azsqldb-lab}
+    # The image has no password-file option, so a small wrapper reads the
+    # Compose secret, exports MSSQL_SA_PASSWORD inside the engine's own
+    # process only, then runs the image's normal entrypoint.
+    entrypoint: ["/bin/bash", "/lab/sqldb-entrypoint.sh"]
+    command: ["/opt/mssql/bin/sqlservr"]
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      # Loopback only.  Change the host port with AZSQLDB_PORT.
+      - "127.0.0.1:${AZSQLDB_PORT:-14331}:1433"
+    volumes:
+      - sqldb-data:/var/opt/mssql
+      - ./sqldb-entrypoint.sh:/lab/sqldb-entrypoint.sh:ro
+    secrets:
+      - sa_password
+    healthcheck:
+      # SQLCMDPASSWORD is set for the sqlcmd process only.  -C trusts the
+      # container's self-signed certificate; the connection never leaves the
+      # container.
+      test:
+        - "CMD-SHELL"
+        - "SQLCMDPASSWORD=\"$$(cat /run/secrets/sa_password)\" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 3 -Q \"SELECT 1;\" > /dev/null"
+      interval: 5s
+      timeout: 10s
+      retries: 36
+      start_period: 20s
+    # The secret file is removed from the host once the engine is healthy, so
+    # Docker cannot re-mount it on an automatic restart.  Restart with the
+    # start script instead.
+    restart: "no"
+    stop_grace_period: 60s
+
+secrets:
+  sa_password:
+    file: ${AZSQLDB_SECRET_FILE:?Start the lab with the start script, which sets AZSQLDB_SECRET_FILE}
+
+volumes:
+  sqldb-data:
+    name: ${AZSQLDB_VOLUME:-azsqldb-lab-data}

@@ -1,0 +1,27 @@
+name: Feature request or finding
+description: Suggest an improvement, or report container behaviour that differs from Azure SQL Database or from Microsoft's documentation.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do, or what did you observe?  For a finding, include the image digest and the evidence.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like the lab to do?  For a finding, suggest a rerunnable test.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

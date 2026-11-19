@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Read the README first
+    url: https://code.hannahvernon.com/hannah-vernon/azure-sql-db-container-lab#readme
+    about: Setup, password handling, troubleshooting and known findings.
+  - name: Problems with the container image itself
+    url: https://microsoft.github.io/azure-sql-dev-hub/container/get-started.html#report-an-issue
+    about: Report engine or image bugs to Microsoft.

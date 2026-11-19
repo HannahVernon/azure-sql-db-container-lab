@@ -1,0 +1,71 @@
+name: Bug report
+description: A script, the Compose file, a test or the documentation is wrong or does not work.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not report security problems here.  See `SECURITY.md` and mail vuln@mvct.com instead.
+        Never paste a password, a connection string secret or customer data.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What is wrong?
+      description: Describe the problem.  If a document is wrong, quote the sentence.
+      placeholder: Start-AzureSqlDbLab.ps1 reports "application not healthy" on a new volume.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands and the output, with any real host names removed.
+      placeholder: |
+        1. cmdkey /generic:azsqldb-lab-sa /user:sa /pass
+        2. .\scripts\Start-AzureSqlDbLab.ps1 -Pull
+        3. Observe the error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and architecture
+      placeholder: Windows 11 x64 with WSL 2 Debian 13, Ubuntu 24.04 ARM64, macOS 15
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Container runtime and Compose version
+      placeholder: Docker 29.8.2, Compose 5.6.0
+    validations:
+      required: true
+
+  - type: input
+    id: image
+    attributes:
+      label: Image digest
+      description: Output of "docker inspect --format '{{.Image}}' azsqldb-lab".
+      placeholder: sha256:...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Repository commit
+      placeholder: abc1234
+    validations:
+      required: true
