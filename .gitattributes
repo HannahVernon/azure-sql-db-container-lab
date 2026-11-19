@@ -1,0 +1,27 @@
+# Normalize all text files.  Git stores LF and applies the per-path eol rules below on checkout.
+* text=auto
+
+# Windows tooling: CRLF
+*.ps1       text eol=crlf
+*.psm1      text eol=crlf
+*.psd1      text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+# Runs inside Linux containers or shells: LF
+*.sh        text eol=lf
+*.bash      text eol=lf
+compose.yaml text eol=lf
+
+# Cross-platform text
+*.md        text
+*.sql       text
+*.yml       text
+*.yaml      text
+*.json      text
+
+# Binary
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.zip       binary
