@@ -19,6 +19,7 @@ Path | Purpose
 `scripts/start-lab.sh`, `stop-lab.sh`, `invoke-lab-sql.sh` | The same three jobs on Linux and macOS
 `sql/build-check.sql` | Reports the engine version and confirms `EngineEdition` 5
 `tests/change-tracking/` | A rerunnable Change Tracking test (see [Findings](#findings))
+`tests/functions-trigger/` | An end-to-end Azure Functions SQL trigger test against the lab (see [Findings](#findings))
 
 ## Requirements
 
@@ -130,7 +131,9 @@ For repeatable runs, pin the image by digest with `-Image mcr.microsoft.com/mssq
 
 Tested on 2026-11-19 with image digest `sha256:8323f47dad34124f391413c3c3182ca89da5632888df6cfb5326574026599c57` (label `com.microsoft.version` 18.0.256.6210), which reports `Microsoft SQL Azure (RTM) - 12.0.2000.8`, built Nov 17 2026.
 
-**Change Tracking works.**  Microsoft's FAQ lists Change Tracking among the capabilities the container does not include.  On this build, `ALTER DATABASE ... SET CHANGE_TRACKING = ON`, `ALTER TABLE ... ENABLE CHANGE_TRACKING` and `CHANGETABLE(CHANGES ...)` all succeed, and `sys.change_tracking_databases` shows the database.  An earlier private preview build (Oct 25 2026) behaved the same.  Run `tests/change-tracking/Test-ChangeTracking.ps1` to check your build.  This matters for the Azure Functions SQL trigger, which depends on Change Tracking.
+**Change Tracking works.**  Microsoft's FAQ lists Change Tracking among the capabilities the container does not include.  On this build, `ALTER DATABASE ... SET CHANGE_TRACKING = ON`, `ALTER TABLE ... ENABLE CHANGE_TRACKING` and `CHANGETABLE(CHANGES ...)` all succeed, and `sys.change_tracking_databases` shows the database.  An earlier private preview build (Oct 25 2026) behaved the same.  Run `tests/change-tracking/Test-ChangeTracking.ps1` to check your build.
+
+**The Azure Functions SQL trigger works against the container.**  This matters because the trigger depends on Change Tracking, and Microsoft documents it as the local event-driven option.  `tests/functions-trigger/Test-FunctionsTrigger.ps1` runs a real .NET 8 isolated function with Azure Functions Core Tools 4.16.0 and `Microsoft.Azure.Functions.Worker.Extensions.Sql` 3.1.549, with Azurite for the host's storage.  The listener starts, creates its `az_func` lease tables, and delivers inserts, updates and deletes within a second or two.  Change Tracking reports net changes, so a row inserted then updated arrives as one `Insert` with the new values, and a row inserted then deleted arrives as one `Delete`.  The test needs Core Tools and the .NET 8 SDK on the host, and uses a throwaway login whose password exists only in a temporary `local.settings.json`, because the Functions host reads connection settings from there or from environment variables.  The script drops the login and deletes the file when it finishes.
 
 **`DB_ID()` from `master` returns NULL for a user database, as it does in Azure.**  On a `master` connection, `DB_ID(N'appdb')` and `DB_NAME()` of that database's ID both return NULL while `sys.databases` lists it.  This is documented Azure SQL Database behaviour: [DB_ID](https://learn.microsoft.com/sql/t-sql/functions/db-id-transact-sql#remarks) returns an ID only for the current database there.  The catch is in sample code.  Microsoft's getting started guide and the Microsoft SQL agent skills create the database with `IF DB_ID('appdb') IS NULL CREATE DATABASE appdb;`, which works the first time and fails with Msg 1801 on a rerun against a persistent volume.  Where a sample wraps that guard in a wait loop with its output discarded, a rerun waits forever.  The scripts here check `sys.databases` instead, which works on the container and in Azure.
 
